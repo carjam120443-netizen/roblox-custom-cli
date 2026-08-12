@@ -1,0 +1,58 @@
+name: Build Full Launcher ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and package Windows launcher
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate source
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path . -Filter *.py -Recurse
+          if ($files.Count -eq 0) { throw 'No Python files found.' }
+          foreach ($file in $files) { python -m py_compile $file.FullName }
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pip pyinstaller
+      - name: Build GUI EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name RobloxCustomLauncher launcher_gui.py
+      - name: Build CLI EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --name RobloxCustomCLI roblox_cli.py
+      - name: Assemble complete ZIP
+        shell: pwsh
+        run: |
+          $root = "package/Roblox-Custom-Launcher"
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          Copy-Item dist/RobloxCustomLauncher.exe "$root/"
+          Copy-Item dist/RobloxCustomCLI.exe "$root/"
+          Get-ChildItem -File -Filter *.py | Copy-Item -Destination $root
+          if (Test-Path README.md) { Copy-Item README.md "$root/" }
+          if (Test-Path LICENSE) { Copy-Item LICENSE "$root/" }
+          @'
+          Roblox Custom Launcher
+
+          Windows package containing the custom GUI launcher and CLI.
+          The launcher uses the official Roblox website/client.
+          It does not collect credentials, cookies, or session tokens.
+          It does not inject into, patch, or bypass Roblox.
+          '@ | Set-Content "$root/SETUP.txt"
+          Compress-Archive -Path "$root/*" -DestinationPath "Roblox-Custom-Launcher-Windows.zip" -Force
+      - name: Upload complete ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Roblox-Custom-Launcher-Windows-ZIP
+          path: Roblox-Custom-Launcher-Windows.zip
+          if-no-files-found: error
