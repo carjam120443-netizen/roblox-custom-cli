@@ -1,48 +1,83 @@
-# Roblox Custom CLI 🎮
+# 🎮 Roblox Custom Launcher
 
-A lightweight, safe Roblox launcher inspired by the **idea** of Fishstrap: provide a convenient alternative launcher interface and useful local features without modifying the Roblox client.
+**A custom, safe Roblox bootstrapper built for people who want more control over how they launch Roblox.**
 
-## What it does
+Roblox Custom Launcher (**RCL**) is a lightweight, custom-branded launcher inspired by the general design and functionality of projects like Fishstrap, while being independently implemented.
 
-- 🚀 Opens Roblox Home from the CLI
-- 🎮 Launches games through their official `roblox.com/games/<placeId>` page
-- ⭐ Stores a small local favorites list
-- 🧩 Accepts either a place ID or an official Roblox game URL
-- 🔐 Never asks for or stores Roblox passwords, cookies, session tokens, or access tokens
-- 🛡️ Does not inject code, patch Roblox binaries, bypass authentication, or evade Roblox security
-- 📦 Uses Python's standard library only
+> **RCL — Your launcher. Your setup. Roblox's client.** 🎮🔥
 
-## Usage
+## ✨ Features
 
-```text
-python roblox_cli.py
-```
+- 🖥️ **Custom GUI launcher**
+- 🚀 **Direct Roblox client launching** through the official Windows protocol
+- 🔍 **Roblox installation detection**
+- 📊 **Launcher diagnostics**
+- ⭐ **Favorites**
+- 🕘 **Launch history**
+- 👤 **Launcher profiles**
+- 💻 **CLI support**
+- 📦 **Standalone Windows `.exe` builds**
+- 🤖 **Automated GitHub Actions builds**
+- 📁 **Portable source code**
+- 🎨 **Custom RCL branding**
 
-Or use commands directly:
+## 🔐 Safety
 
-```text
-python roblox_cli.py home
-python roblox_cli.py launch 1818
-python roblox_cli.py launch https://www.roblox.com/games/1818/
-python roblox_cli.py favorite 1818
-```
+RCL is designed to work **with the official Roblox client**, rather than modifying it.
 
-The launcher opens the official Roblox game page in the default browser. Roblox's own website/client handles authentication, updates, and the actual game launch.
+It does **not**:
 
-## Fishstrap-inspired direction
+- ❌ Collect Roblox passwords
+- ❌ Read `.ROBLOSECURITY` cookies
+- ❌ Extract session tokens
+- ❌ Inject into Roblox
+- ❌ Patch the Roblox client
+- ❌ Bypass Roblox security
 
-The project takes inspiration from the **launcher/bootstrapping concept** of Fishstrap, not by copying its source code. Future versions can add safe launcher conveniences such as:
+Authentication remains handled by Roblox itself.
 
-- per-user local profiles
-- launch history
-- favorite games
-- configurable Roblox website URLs
-- diagnostics that only inspect local launcher state
-- optional Windows shortcuts
-- a GUI around the same safe launcher core
+## 🚀 Launching Roblox
+
+The GUI does **not** open `roblox.com` when you click **Launch Roblox**.
+
+On Windows, RCL invokes the official `roblox-player:` protocol registered by the Roblox client, allowing Windows to hand the launch request directly to Roblox.
+
+If Roblox is not installed or its protocol registration is unavailable, the launcher reports the installation status rather than attempting to replace Roblox with an unofficial client.
+
+## 🛠️ Built With
+
+- 🐍 Python
+- 🖥️ Tkinter
+- 📦 PyInstaller
+- ⚙️ GitHub Actions
+
+## 📦 Windows Builds
+
+GitHub Actions can build the launcher automatically and package:
+
+- `RobloxCustomLauncher.exe` — GUI launcher
+- `RobloxCustomCLI.exe` — CLI launcher
+- Python source files
+- Documentation
+
+A separate workflow packages the complete project into a Windows ZIP artifact.
+
+## 🎯 Project Goal
+
+The goal of RCL is to build a **fully custom Roblox launcher experience** with useful tools and a polished interface while keeping the actual Roblox client untouched.
+
+The project can grow with features such as local profiles, launch history, favorites, diagnostics, shortcuts, and additional launcher configuration.
+
+## 🐟 Fishstrap-inspired direction
+
+RCL takes inspiration from the **launcher/bootstrapper concept and UX direction** of Fishstrap, but its implementation and branding are independent. It is not intended to reproduce Fishstrap's source code or impersonate the project.
 
 Features that modify or bypass the Roblox client, defeat security controls, automate account credentials, or interfere with anti-cheat are intentionally out of scope.
 
-## License
+## ⚠️ Disclaimer
 
-This project is independent and is not affiliated with Roblox Corporation or Fishstrap.
+Roblox Custom Launcher is an independent community project and is **not affiliated with Roblox Corporation or Fishstrap**.
+
+## 📄 License
+
+See the repository license for the terms governing this project.
