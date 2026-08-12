@@ -1,0 +1,56 @@
+name: Build Custom Roblox Launcher
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    name: Validate and package launcher
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate Python files
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path . -Filter *.py -Recurse
+          if ($files.Count -eq 0) {
+            throw 'No Python launcher files were found.'
+          }
+          foreach ($file in $files) {
+            python -m py_compile $file.FullName
+          }
+
+      - name: Create setup package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Path *.py -Destination dist -ErrorAction SilentlyContinue
+          if (Test-Path README.md) { Copy-Item README.md dist/ }
+          if (Test-Path LICENSE) { Copy-Item LICENSE dist/ }
+          @'
+          Custom Roblox Launcher
+
+          Safe launcher package. It uses the official Roblox client and does not include credentials, cookies, session tokens, injection, or security bypasses.
+
+          Run roblox_cli.py with Python 3.x.
+          '@ | Set-Content -Path dist/SETUP.txt
+
+      - name: Upload setup package
+        uses: actions/upload-artifact@v4
+        with:
+          name: roblox-custom-launcher-setup
+          path: dist/
+          if-no-files-found: error
