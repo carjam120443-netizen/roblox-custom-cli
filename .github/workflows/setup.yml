@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   setup:
-    name: Validate and package launcher
+    name: Build Windows GUI launcher
     runs-on: windows-latest
 
     steps:
@@ -26,31 +26,37 @@ jobs:
         shell: pwsh
         run: |
           $files = Get-ChildItem -Path . -Filter *.py -Recurse
-          if ($files.Count -eq 0) {
-            throw 'No Python launcher files were found.'
-          }
-          foreach ($file in $files) {
-            python -m py_compile $file.FullName
-          }
+          if ($files.Count -eq 0) { throw 'No Python launcher files were found.' }
+          foreach ($file in $files) { python -m py_compile $file.FullName }
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Build GUI EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name RobloxCustomLauncher launcher_gui.py
+
+      - name: Build CLI EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --name RobloxCustomCLI roblox_cli.py
 
       - name: Create setup package
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item -Path *.py -Destination dist -ErrorAction SilentlyContinue
-          if (Test-Path README.md) { Copy-Item README.md dist/ }
-          if (Test-Path LICENSE) { Copy-Item LICENSE dist/ }
+          New-Item -ItemType Directory -Force -Path dist/setup | Out-Null
+          Copy-Item dist/RobloxCustomLauncher.exe dist/setup/
+          Copy-Item dist/RobloxCustomCLI.exe dist/setup/
+          if (Test-Path README.md) { Copy-Item README.md dist/setup/ }
+          if (Test-Path LICENSE) { Copy-Item LICENSE dist/setup/ }
           @'
-          Custom Roblox Launcher
+          Roblox Custom Launcher
 
-          Safe launcher package. It uses the official Roblox client and does not include credentials, cookies, session tokens, injection, or security bypasses.
+          A custom branded GUI launcher inspired by the general installer/launcher UX of Fishstrap, independently implemented.
 
-          Run roblox_cli.py with Python 3.x.
-          '@ | Set-Content -Path dist/SETUP.txt
+          This build uses the official Roblox website/client. It does not collect credentials or session tokens and does not inject into, patch, or bypass Roblox.
+          '@ | Set-Content -Path dist/setup/SETUP.txt
 
-      - name: Upload setup package
+      - name: Upload Windows EXEs
         uses: actions/upload-artifact@v4
         with:
-          name: roblox-custom-launcher-setup
-          path: dist/
+          name: roblox-custom-launcher-windows
+          path: dist/setup/
           if-no-files-found: error
