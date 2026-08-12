@@ -1,0 +1,52 @@
+name: Extract Launcher Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build extracted launcher package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pip pyinstaller
+      - name: Validate launcher
+        run: python -m py_compile launcher_gui.py
+      - name: Build GUI launcher
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name RobloxCustomLauncher launcher_gui.py
+      - name: Extract launcher package
+        shell: pwsh
+        run: |
+          $root = "extracted/Roblox-Custom-Launcher"
+          New-Item -ItemType Directory -Force -Path "$root/assets/wallpapers" | Out-Null
+          Copy-Item "dist/RobloxCustomLauncher.exe" "$root/"
+          Copy-Item "launcher_gui.py" "$root/"
+          if (Test-Path "assets/wallpapers") { Copy-Item "assets/wallpapers/*" "$root/assets/wallpapers/" -Recurse -Force }
+          if (Test-Path "README.md") { Copy-Item "README.md" "$root/" }
+          @'
+          Roblox Custom Launcher
+
+          This package contains the GUI launcher and theme assets.
+          Themes are applied to the RCL launcher and its launch splash.
+
+          RCL does not modify Roblox's installed client, inject into Roblox,
+          patch Roblox files, or alter the Roblox website.
+          '@ | Set-Content "$root/SETUP.txt"
+          Compress-Archive -Path "$root/*" -DestinationPath "Roblox-Custom-Launcher-Extracted.zip" -Force
+      - name: Upload extracted package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Roblox-Custom-Launcher-Extracted
+          path: Roblox-Custom-Launcher-Extracted.zip
+          if-no-files-found: error
